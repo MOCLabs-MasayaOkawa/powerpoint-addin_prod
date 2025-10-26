@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
+	<ribbon>
+		<tabs>
+			<tab idMso="TabView">
+				<group id="PowerPointEfficiencyGroup"
+					   label="効率化ツール">
+
+					<button id="ShowEfficiencyPane"
+							label="効率化ペイン表示"
+							size="normal"
+							imageMso="TaskPaneGallery"
+							onAction="ShowEfficiencyPane_Click"
+							screentip="効率化ペインを表示します"
+							supertip="PowerPoint効率化アドインのカスタムペインを表示します。50の効率化機能を利用できます。" />
+
+					<button id="HideEfficiencyPane"
+							label="効率化ペイン非表示"
+							size="normal"
+							imageMso="TaskPaneGallery"
+							onAction="HideEfficiencyPane_Click"
+							screentip="効率化ペインを非表示にします" />
+
+				</group>
+			</tab>
+		</tabs>
+	</ribbon>
+</customUI>

@@ -1,0 +1,400 @@
+﻿<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--
+    This section defines project-level properties.
+
+    AssemblyName
+      Name of the output assembly.
+    Configuration
+      Specifies a default value for debug.
+    OutputType
+      Must be "Library" for VSTO.
+    Platform
+      Specifies what CPU the output of this project can run on.
+    NoStandardLibraries
+      Set to "false" for VSTO.
+    RootNamespace
+      In C#, this specifies the namespace given to new files. In VB, all objects are
+      wrapped in this namespace at runtime.
+  -->
+  <PropertyGroup>
+    <ProjectTypeGuids>{BAA0C2D2-18E2-41B9-852F-F413020CAA33};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{84A22709-3C4F-443D-ACC3-A943801A8A40}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <RootNamespace>PowerPointEfficiencyAddin</RootNamespace>
+    <AssemblyName>PowerPointEfficiencyAddin</AssemblyName>
+    <LoadBehavior>3</LoadBehavior>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <DefineConstants>VSTO40;UseOfficeInterop</DefineConstants>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <BootstrapperComponentsLocation>HomeSite</BootstrapperComponentsLocation>
+    <ResolveComReferenceSilent>true</ResolveComReferenceSilent>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.VSTORuntime.4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft Visual Studio 2010 Tools for Office Runtime %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <PropertyGroup>
+    <!--
+      OfficeApplication
+        Add-in host application
+    -->
+    <OfficeApplication>PowerPoint</OfficeApplication>
+  </PropertyGroup>
+  <!--
+    This section defines properties that are set when the "Debug" configuration is selected.
+
+    DebugSymbols
+      If "true", create symbols (.pdb). If "false", do not create symbols.
+    DefineConstants
+      Constants defined for the preprocessor.
+    EnableUnmanagedDebugging
+      If "true", starting the debugger will attach both managed and unmanaged debuggers.
+    Optimize
+      If "true", optimize the build output. If "false", do not optimize.
+    OutputPath
+      Output path of project relative to the project file.
+    WarningLevel
+      Warning level for the compiler.
+  -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!--
+    This section defines properties that are set when the "Release" configuration is selected.
+
+    DebugSymbols
+      If "true", create symbols (.pdb). If "false", do not create symbols.
+    DefineConstants
+      Constants defined for the preprocessor.
+    EnableUnmanagedDebugging
+      If "true", starting the debugger will attach both managed and unmanaged debuggers.
+    Optimize
+      If "true", optimize the build output. If "false", do not optimize.
+    OutputPath
+      Output path of project relative to the project file.
+    WarningLevel
+      Warning level for the compiler.
+  -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <!--
+    This section specifies references for the project.
+  -->
+  <ItemGroup>
+    <Reference Include="Accessibility" />
+    <Reference Include="Magick.NET-Q16-AnyCPU, Version=13.4.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>..\packages\Magick.NET-Q16-AnyCPU.13.4.0\lib\netstandard20\Magick.NET-Q16-AnyCPU.dll</HintPath>
+    </Reference>
+    <Reference Include="Magick.NET.Core, Version=13.4.0.0, Culture=neutral, PublicKeyToken=2004825badfa91ec, processorArchitecture=MSIL">
+      <HintPath>..\packages\Magick.NET.Core.13.4.0\lib\netstandard20\Magick.NET.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
+      <HintPath>..\packages\NLog.6.0.2\lib\net46\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      <Private>True</Private>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Office.Tools.v4.0.Framework, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Tools.Applications.Runtime, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Office.Tools, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Office.Tools.Common, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Office.Tools.Common.v4.0.Utilities, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <Choose>
+    <When Condition="$([System.String]::Copy(&quot;;$(DefineConstants);&quot;).ToLower().Contains(';useofficeinterop;')) or $([System.String]::Copy(&quot;,$(DefineConstants),&quot;).ToLower().Contains(',useofficeinterop,'))">
+      <ItemGroup>
+        <Reference Include="Office, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+          <Private>False</Private>
+          <EmbedInteropTypes>true</EmbedInteropTypes>
+        </Reference>
+        <Reference Include="Microsoft.Office.Interop.PowerPoint, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+          <Private>False</Private>
+          <EmbedInteropTypes>true</EmbedInteropTypes>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <COMReference Include="Microsoft.Office.Core">
+          <Guid>{2DF8D04C-5BFA-101B-BDE5-00AA0044DE52}</Guid>
+          <VersionMajor>2</VersionMajor>
+          <VersionMinor>7</VersionMinor>
+          <Lcid>0</Lcid>
+          <WrapperTool>tlbimp</WrapperTool>
+          <Isolated>False</Isolated>
+          <EmbedInteropTypes>true</EmbedInteropTypes>
+        </COMReference>
+        <COMReference Include="Microsoft.Office.Interop.PowerPoint">
+          <Guid>{91493440-5A91-11CF-8700-00AA0060263B}</Guid>
+          <VersionMajor>2</VersionMajor>
+          <VersionMinor>11</VersionMinor>
+          <Lcid>0</Lcid>
+          <WrapperTool>tlbimp</WrapperTool>
+          <Isolated>False</Isolated>
+          <EmbedInteropTypes>true</EmbedInteropTypes>
+        </COMReference>
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  <ItemGroup>
+    <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <!--
+    This section defines the user source files that are part of the project.
+     
+    A "Compile" element specifies a source file to compile.
+    An "EmbeddedResource" element specifies an .resx file for embedded resources.
+    A "None" element specifies a file that is not to be passed to the compiler (for instance, 
+    a text file or XML file).
+    The "AppDesigner" element specifies the directory where the application properties files
+    can be found.
+  -->
+  <ItemGroup>
+    <Compile Include="Models\FunctionItem.cs" />
+    <Compile Include="Models\Licensing\FeatureAccessLevel.cs" />
+    <Compile Include="Models\Licensing\FeatureDefinition.cs" />
+    <Compile Include="Models\UpdateInfo.cs" />
+    <Compile Include="Services\Licensing\FeatureRegistry.cs" />
+    <Compile Include="Models\Licensing\LicenseInfo.cs" />
+    <Compile Include="Models\Licensing\LicenseStatus.cs" />
+    <Compile Include="Models\Licensing\LicenseValidationResult.cs" />
+    <Compile Include="Models\ShapeInfo.cs" />
+    <Compile Include="Models\ShapeStyleSettings.cs" />
+    <Compile Include="Models\SpacingSettings.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Ribbon\ViewRibbon.cs" />
+    <Compile Include="Services\AlignmentService.cs" />
+    <Compile Include="Services\ImageCompressionDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Services\Licensing\LicenseApiClient.cs" />
+    <Compile Include="Services\Licensing\LicenseCache.cs" />
+    <Compile Include="Services\Licensing\LicenseManager.cs" />
+    <Compile Include="Services\MultiInstance\ApplicationContextManager.cs" />
+    <Compile Include="Services\MultiInstance\DefaultApplicationProvider.cs" />
+    <Compile Include="Services\MultiInstance\IApplicationProvider.cs" />
+    <Compile Include="Services\MultiInstance\MultiInstanceApplicationProvider.cs" />
+    <Compile Include="Services\PowerToolService.cs" />
+    <Compile Include="Services\Security\RegistryManager.cs" />
+    <Compile Include="Services\SettingsService.cs" />
+    <Compile Include="Services\ShapeService.cs" />
+    <Compile Include="Services\SpacingAdjustmentDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Services\TaskPaneManager.cs.cs" />
+    <Compile Include="Services\TextFormatService.cs.cs" />
+    <Compile Include="Services\UpdateService.cs" />
+    <Compile Include="UI\CustomTaskPaneUserControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UI\CustomTaskPaneUserControl.Designer.cs">
+      <DependentUpon>CustomTaskPaneUserControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\LicenseSettingsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\LineSeparatorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\MarginAdjustmentDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\MatrixTunerDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ShapeStyleDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Utils\ComHelper.cs" />
+    <Compile Include="Utils\ErrorHandler.cs" />
+    <Compile Include="Utils\Logger.cs" />
+    <EmbeddedResource Include="Ribbon\ViewRibbon.xml" />
+    <EmbeddedResource Include="Resources\Icons\sequential_numbers.png" />
+    <EmbeddedResource Include="Resources\Icons\adjust_equal_spacing.png" />
+    <EmbeddedResource Include="Resources\Icons\align_bottom.png" />
+    <EmbeddedResource Include="Resources\Icons\align_left.png" />
+    <EmbeddedResource Include="Resources\Icons\align_line_length.png" />
+    <EmbeddedResource Include="Resources\Icons\align_right.png" />
+    <EmbeddedResource Include="Resources\Icons\align_top.png" />
+    <EmbeddedResource Include="Resources\Icons\center_align.png" />
+    <EmbeddedResource Include="Resources\Icons\duplicate_connectors.png" />
+    <EmbeddedResource Include="Resources\Icons\excel_to_pptx.png" />
+    <EmbeddedResource Include="Resources\Icons\generate_matrix.png" />
+    <EmbeddedResource Include="Resources\Icons\line_horizontal.png" />
+    <EmbeddedResource Include="Resources\Icons\line_vertical.png" />
+    <EmbeddedResource Include="Resources\Icons\match_environment.png" />
+    <EmbeddedResource Include="Resources\Icons\match_format.png" />
+    <EmbeddedResource Include="Resources\Icons\match_height.png" />
+    <EmbeddedResource Include="Resources\Icons\match_round_corner.png" />
+    <EmbeddedResource Include="Resources\Icons\match_size.png" />
+    <EmbeddedResource Include="Resources\Icons\match_width.png" />
+    <EmbeddedResource Include="Resources\Icons\merge_text.png" />
+    <EmbeddedResource Include="Resources\Icons\place_bottom_to_top.png" />
+    <EmbeddedResource Include="Resources\Icons\place_left_to_right.png" />
+    <EmbeddedResource Include="Resources\Icons\place_right_to_left.png" />
+    <EmbeddedResource Include="Resources\Icons\place_top_to_bottom.png" />
+    <EmbeddedResource Include="Resources\Icons\shape_organization.png" />
+    <EmbeddedResource Include="Resources\Icons\select_shapes.png" />
+    <EmbeddedResource Include="Resources\Icons\select_similar.png" />
+    <EmbeddedResource Include="Resources\Icons\shortcuts.png" />
+    <EmbeddedResource Include="Resources\Icons\swap_positions.png" />
+    <EmbeddedResource Include="Resources\Icons\unify_font.png" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="App.config" />
+    <None Include="NLog.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+    <None Include="PowerPointEfficiencyAddin_TemporaryKey.pfx" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="ThisAddIn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <None Include="ThisAddIn.Designer.xml">
+      <DependentUpon>ThisAddIn.cs</DependentUpon>
+    </None>
+    <Compile Include="ThisAddIn.Designer.cs">
+      <DependentUpon>ThisAddIn.Designer.xml</DependentUpon>
+    </Compile>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup />
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestKeyFile>PowerPointEfficiencyAddin_TemporaryKey.pfx</ManifestKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ManifestCertificateThumbprint>1052EC09074FB055AECD904D5A0403FEDA0411D9</ManifestCertificateThumbprint>
+  </PropertyGroup>
+  <!-- Include the build rules for a C# project. -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- Include additional build rules for an Office application add-in. -->
+  <Import Project="$(VSToolsPath)\OfficeTools\Microsoft.VisualStudio.Tools.Office.targets" Condition="'$(VSToolsPath)' != ''" />
+  <!-- This section defines VSTO properties that describe the host-changeable project properties. -->
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{BAA0C2D2-18E2-41B9-852F-F413020CAA33}">
+        <ProjectProperties HostName="PowerPoint" HostPackage="{29A7B9D7-A7F1-4328-8EF0-6B2D1A56B2C1}" OfficeVersion="15.0" VstxVersion="4.0" ApplicationType="PowerPoint" Language="cs" TemplatesPath="" DebugInfoExeName="#Software\Microsoft\Office\16.0\PowerPoint\InstallRoot\Path#powerpnt.exe" AddItemTemplatesGuid="{51063C3A-E220-4D12-8922-BDA915ACD783}" />
+        <Host Name="PowerPoint" GeneratedCodeNamespace="PowerPointEfficiencyAddin" IconIndex="0">
+          <HostItem Name="ThisAddIn" Code="ThisAddIn.cs" CanonicalName="AddIn" CanActivate="false" IconIndex="1" Blueprint="ThisAddIn.Designer.xml" GeneratedCode="ThisAddIn.Designer.cs" />
+        </Host>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Import Project="..\packages\Magick.NET-Q16-AnyCPU.13.4.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets" Condition="Exists('..\packages\Magick.NET-Q16-AnyCPU.13.4.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>このプロジェクトは、このコンピューター上にない NuGet パッケージを参照しています。それらのパッケージをダウンロードするには、[NuGet パッケージの復元] を使用します。詳細については、http://go.microsoft.com/fwlink/?LinkID=322105 を参照してください。見つからないファイルは {0} です。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Magick.NET-Q16-AnyCPU.13.4.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Magick.NET-Q16-AnyCPU.13.4.0\build\netstandard20\Magick.NET-Q16-AnyCPU.targets'))" />
+  </Target>
+</Project>
