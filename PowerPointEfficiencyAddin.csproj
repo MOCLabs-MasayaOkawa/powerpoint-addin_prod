@@ -237,6 +237,9 @@
     <Compile Include="Models\Licensing\FeatureAccessLevel.cs" />
     <Compile Include="Models\Licensing\FeatureDefinition.cs" />
     <Compile Include="Models\UpdateInfo.cs" />
+    <Compile Include="Services\Core\Image\ImageCompressionService.cs" />
+    <Compile Include="Services\Core\PowerTool\PowerToolServiceHelper.cs" />
+    <Compile Include="Services\Core\Selection\ShapeSelectionService.cs" />
     <Compile Include="Services\Infrastructure\Licensing\FeatureRegistry.cs" />
     <Compile Include="Models\Licensing\LicenseInfo.cs" />
     <Compile Include="Models\Licensing\LicenseStatus.cs" />
@@ -361,7 +364,11 @@
     </Compile>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Services\Core\Command\" />
+    <Folder Include="Services\Core\Line\" />
+    <Folder Include="Services\Core\Matrix\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

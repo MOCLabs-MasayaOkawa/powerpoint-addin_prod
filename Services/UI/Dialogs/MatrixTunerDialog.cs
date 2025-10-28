@@ -6,9 +6,8 @@ using System.Windows.Forms;
 using PowerPointEfficiencyAddin.Models;
 using NLog;
 using PowerPoint = Microsoft.Office.Interop.PowerPoint;
-using PowerPointEfficiencyAddin.Services.Core;
 
-namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
+namespace PowerPointEfficiencyAddin.UI
 {
     /// <summary>
     /// Matrix Tuner ダイアログ（新仕様版）
@@ -20,7 +19,7 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
 
         #region Fields
         private readonly List<ShapeInfo> shapes;
-        private readonly PowerToolService.GridInfo gridInfo;
+        private readonly PowerPointEfficiencyAddin.Services.Core.PowerTool.PowerToolServiceHelper.GridInfo gridInfo;
         private readonly List<ShapePosition> originalPositions;
 
         // 基準値（初期状態）
@@ -62,14 +61,14 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
         private bool isPreview = true; // プレビューモードフラグ
         #endregion
 
-        public MatrixTunerDialog(List<ShapeInfo> shapes, PowerToolService.GridInfo gridInfo)
+        public MatrixTunerDialog(List<ShapeInfo> shapes, PowerPointEfficiencyAddin.Services.Core.PowerTool.PowerToolServiceHelper.GridInfo gridInfo)
         {
             this.shapes = shapes;
             this.gridInfo = gridInfo;
-            originalPositions = SaveCurrentPositions();
-            baselinePositions = new List<ShapePosition>();
-            previewPositions = new List<ShapePosition>();
-            selectedCells = new bool[gridInfo.Rows, gridInfo.Columns];
+            this.originalPositions = SaveCurrentPositions();
+            this.baselinePositions = new List<ShapePosition>();
+            this.previewPositions = new List<ShapePosition>();
+            this.selectedCells = new bool[gridInfo.Rows, gridInfo.Columns];
 
             // タイマー初期化
             updateTimer = new Timer();
@@ -87,12 +86,12 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
         private void InitializeComponent()
         {
             // Form設定
-            Text = "Matrix Tuner";
-            Size = new Size(500, 550);
-            MinimumSize = new Size(500, 550);
-            StartPosition = FormStartPosition.CenterScreen;
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
+            this.Text = "Matrix Tuner";
+            this.Size = new Size(500, 550);
+            this.MinimumSize = new Size(500, 550);
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
 
             // サイズ変更対象選択グループ
             grpTarget = new GroupBox
@@ -296,7 +295,7 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
             btnOK.Click += BtnOK_Click;
 
             // フォームにコントロールを追加
-            Controls.AddRange(new Control[] { grpTarget, grpSpacing, btnOK, btnApply, btnCancel, btnReset });
+            this.Controls.AddRange(new Control[] { grpTarget, grpSpacing, btnOK, btnApply, btnCancel, btnReset });
         }
 
         private void InitializeValues()
@@ -503,7 +502,7 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
             {
                 for (int r = 0; r < gridInfo.Rows; r++)
                 {
-                    bool select = r % 2 == 0; // 0-indexed, so even indices are odd rows
+                    bool select = (r % 2 == 0); // 0-indexed, so even indices are odd rows
                     for (int c = 0; c < gridInfo.Columns; c++)
                         selectedCells[r, c] = select;
                 }
@@ -512,7 +511,7 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
             {
                 for (int c = 0; c < gridInfo.Columns; c++)
                 {
-                    bool select = c % 2 == 0;
+                    bool select = (c % 2 == 0);
                     for (int r = 0; r < gridInfo.Rows; r++)
                         selectedCells[r, c] = select;
                 }
@@ -527,7 +526,7 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
             {
                 for (int r = 0; r < gridInfo.Rows; r++)
                 {
-                    bool select = r % 2 == 1; // 0-indexed, so odd indices are even rows
+                    bool select = (r % 2 == 1); // 0-indexed, so odd indices are even rows
                     for (int c = 0; c < gridInfo.Columns; c++)
                         selectedCells[r, c] = select;
                 }
@@ -536,7 +535,7 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
             {
                 for (int c = 0; c < gridInfo.Columns; c++)
                 {
-                    bool select = c % 2 == 1;
+                    bool select = (c % 2 == 1);
                     for (int r = 0; r < gridInfo.Rows; r++)
                         selectedCells[r, c] = select;
                 }
@@ -895,14 +894,14 @@ namespace PowerPointEfficiencyAddin.Services.UI.Dialogs
         {
             this.rows = rows;
             this.columns = columns;
-            lockedCells = new bool[rows, columns];
-            DoubleBuffered = true;
-            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
+            this.lockedCells = new bool[rows, columns];
+            this.DoubleBuffered = true;
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.ResizeRedraw, true);
         }
 
         public void SetLockMode(LockMode mode)
         {
-            lockMode = mode;
+            this.lockMode = mode;
             Invalidate();
         }
 

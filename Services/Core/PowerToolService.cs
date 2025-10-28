@@ -2,9 +2,11 @@
 using Microsoft.Office.Core;
 using NLog;
 using PowerPointEfficiencyAddin.Models;
+using PowerPointEfficiencyAddin.Services.Core.PowerTool;
 using PowerPointEfficiencyAddin.Services.Infrastructure.MultiInstance;
 using PowerPointEfficiencyAddin.Services.Infrastructure.Settings;
 using PowerPointEfficiencyAddin.Services.UI.Dialogs;
+using PowerPointEfficiencyAddin.UI;
 using PowerPointEfficiencyAddin.Utils;
 using System;
 using System.Collections.Generic;
@@ -26,12 +28,14 @@ namespace PowerPointEfficiencyAddin.Services.Core
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly IApplicationProvider applicationProvider;
+        private readonly PowerToolServiceHelper helper;
 
         // DI対応コンストラクタ（商用レベル）
         public PowerToolService(IApplicationProvider applicationProvider)
         {
             this.applicationProvider = applicationProvider ?? throw new ArgumentNullException(nameof(applicationProvider));
             logger.Debug("PowerToolService initialized with DI application provider");
+            this.helper = new PowerToolServiceHelper(applicationProvider);
         }
 
         // 既存コンストラクタ（後方互換性維持）
@@ -53,8 +57,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("MergeText operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 0, "テキスト合成")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 0, "テキスト合成")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -148,10 +152,10 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("MakeLineHorizontal operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "線を水平にする")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "線を水平にする")) return;
 
-            var lineShapes = selectedShapes.Where(s => IsLineShape(s.Shape)).ToList();
+            var lineShapes = selectedShapes.Where(s => helper.IsLineShape(s.Shape)).ToList();
             if (lineShapes.Count == 0)
             {
                 ErrorHandler.ExecuteSafely(() =>
@@ -190,10 +194,10 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("MakeLineVertical operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "線を垂直にする")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "線を垂直にする")) return;
 
-            var lineShapes = selectedShapes.Where(s => IsLineShape(s.Shape)).ToList();
+            var lineShapes = selectedShapes.Where(s => helper.IsLineShape(s.Shape)).ToList();
             if (lineShapes.Count == 0)
             {
                 ErrorHandler.ExecuteSafely(() =>
@@ -232,8 +236,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("SwapPositions operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 2, "図形位置の交換")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 2, "図形位置の交換")) return;
 
             var shape1 = selectedShapes[0];
             var shape2 = selectedShapes[1];
@@ -273,14 +277,14 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("SelectSimilarShapes operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 1, "同種図形に一括選択")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 1, "同種図形に一括選択")) return;
 
             var referenceShape = selectedShapes.First();
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 var similarShapes = new List<PowerPoint.Shape>();
@@ -288,7 +292,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 for (int i = 1; i <= slide.Shapes.Count; i++)
                 {
                     var shape = slide.Shapes[i];
-                    if (IsSimilarShape(referenceShape.Shape, shape))
+                    if (helper.IsSimilarShape(referenceShape.Shape, shape))
                     {
                         similarShapes.Add(shape);
                     }
@@ -297,7 +301,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 if (similarShapes.Count > 1)
                 {
                     // 新しい選択を作成
-                    SelectShapes(similarShapes);
+                    helper.SelectShapes(similarShapes);
                     logger.Info($"Selected {similarShapes.Count} similar shapes");
                 }
                 else
@@ -322,8 +326,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("ExcelToPptx operation started (paste to existing matrix)");
 
-            var selectedShapes = GetSelectedShapeInfos(); // ★既存メソッド流用
-            if (!ValidateSelection(selectedShapes, 1, 0, "Excel貼り付け")) return; // ★既存メソッド流用
+            var selectedShapes = helper.GetSelectedShapeInfos(); // ★既存メソッド流用
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "Excel貼り付け")) return; // ★既存メソッド流用
 
             ComHelper.ExecuteWithComCleanup(() => // ★既存パターン流用
             {
@@ -372,7 +376,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
                         if (textBoxShapes.Count >= 2)
                         {
-                            var gridInfo = DetectGridLayout(textBoxShapes); // ★既存メソッド流用
+                            var gridInfo = helper.DetectGridLayout(textBoxShapes); // ★既存メソッド流用
                             if (gridInfo != null)
                             {
                                 if (PasteExcelDataToObjectMatrix(gridInfo, excelData, excelRows, excelCols))
@@ -486,7 +490,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// <param name="excelRows">Excelの行数</param>
         /// <param name="excelCols">Excelの列数</param>
         /// <returns>貼り付け成功時true</returns>
-        private bool PasteExcelDataToObjectMatrix(GridInfo gridInfo, string[][] excelData, int excelRows, int excelCols)
+        private bool PasteExcelDataToObjectMatrix(PowerToolServiceHelper.GridInfo gridInfo, string[][] excelData, int excelRows, int excelCols)
         {
             try
             {
@@ -1176,10 +1180,10 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AlignLineLength operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 0, "線の長さを揃える")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 0, "線の長さを揃える")) return;
 
-            var lineShapes = selectedShapes.Where(s => IsLineShape(s.Shape)).ToList();
+            var lineShapes = selectedShapes.Where(s => helper.IsLineShape(s.Shape)).ToList();
             if (lineShapes.Count < 2)
             {
                 ErrorHandler.ExecuteSafely(() =>
@@ -1228,8 +1232,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AddSequentialNumbers operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "図形に連番付与")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "図形に連番付与")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -1289,222 +1293,6 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
         #endregion
 
-        #region Private Helper Methods
-
-        /// <summary>
-        /// 現在選択されている図形の情報を取得します
-        /// </summary>
-        private List<ShapeInfo> GetSelectedShapeInfos()
-        {
-            var shapeInfos = new List<ShapeInfo>();
-
-            try
-            {
-                var application = applicationProvider.GetCurrentApplication();
-                var selectedShapes = GetSelectedShapesFromApplication(application);
-
-                var activeWindow = application.ActiveWindow;
-
-                if (activeWindow?.Selection == null)
-                {
-                    logger.Debug("No active window or selection");
-                    return shapeInfos;
-                }
-
-                var selection = activeWindow.Selection;
-
-                // 選択状態の種類を確認
-                logger.Debug($"Selection type: {selection.Type}");
-
-                switch (selection.Type)
-                {
-                    case PowerPoint.PpSelectionType.ppSelectionShapes:
-                        // 通常の図形選択状態
-                        logger.Debug("Normal shape selection mode");
-                        var normalShapeRange = selection.ShapeRange;
-                        if (normalShapeRange != null)
-                        {
-                            for (int i = 1; i <= normalShapeRange.Count; i++)
-                            {
-                                var shape = normalShapeRange[i];
-                                shapeInfos.Add(new ShapeInfo(shape, i - 1));
-                            }
-                        }
-                        break;
-
-                    case PowerPoint.PpSelectionType.ppSelectionText:
-                        // テキスト編集モード
-                        logger.Debug("Text editing mode detected");
-                        try
-                        {
-                            // テキスト編集中の図形を取得
-                            var textRange = selection.TextRange;
-                            if (textRange?.Parent != null)
-                            {
-                                var parentShape = textRange.Parent.Parent; // TextFrame -> Shape
-                                if (parentShape is PowerPoint.Shape shape)
-                                {
-                                    shapeInfos.Add(new ShapeInfo(shape, 0));
-                                    logger.Debug($"Added text editing shape: {shape.Name}");
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Debug(ex, "Failed to get shape from text editing mode, trying alternative method");
-
-                            // 代替方法：ShapeRangeを試行
-                            try
-                            {
-                                var textModeShapeRange = selection.ShapeRange;
-                                if (textModeShapeRange?.Count > 0)
-                                {
-                                    var shape = textModeShapeRange[1];
-                                    shapeInfos.Add(new ShapeInfo(shape, 0));
-                                    logger.Debug($"Added shape via alternative method: {shape.Name}");
-                                }
-                            }
-                            catch (Exception ex2)
-                            {
-                                logger.Warn(ex2, "Alternative method also failed to get text editing shape");
-                            }
-                        }
-                        break;
-
-                    case PowerPoint.PpSelectionType.ppSelectionNone:
-                        logger.Debug("No selection");
-                        break;
-
-                    default:
-                        logger.Debug($"Other selection type: {selection.Type}");
-                        break;
-                }
-
-                logger.Debug($"Retrieved {shapeInfos.Count} shape(s) including text editing mode");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Failed to get selected shape infos including text editing mode");
-            }
-
-            return shapeInfos;
-        }
-
-        // アプリケーション固有の図形選択取得メソッド
-        private PowerPoint.ShapeRange GetSelectedShapesFromApplication(PowerPoint.Application application)
-        {
-            try
-            {
-                var activeWindow = application.ActiveWindow;
-                if (activeWindow == null) return null;
-
-                var selection = activeWindow.Selection;
-
-                switch (selection.Type)
-                {
-                    case PowerPoint.PpSelectionType.ppSelectionShapes:
-                        return selection.ShapeRange;
-
-                    case PowerPoint.PpSelectionType.ppSelectionText:
-                        try
-                        {
-                            var textModeShapeRange = selection.ShapeRange;
-                            if (textModeShapeRange?.Count > 0)
-                            {
-                                return textModeShapeRange;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logger.Debug(ex, "Failed to get ShapeRange from text editing mode");
-                        }
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Failed to get selected shapes from application");
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// 選択状態を検証します
-        /// </summary>
-        private bool ValidateSelection(List<ShapeInfo> shapeInfos, int minRequired, int maxAllowed, string operationName)
-        {
-            return ErrorHandler.ValidateSelection(shapeInfos.Count, minRequired, maxAllowed, operationName);
-        }
-
-        /// <summary>
-        /// 現在のスライドを取得します
-        /// </summary>
-        private PowerPoint.Slide GetCurrentSlide()
-        {
-            try
-            {
-                var application = applicationProvider.GetCurrentApplication();
-                var activeWindow = application.ActiveWindow;
-
-                if (activeWindow.ViewType == PowerPoint.PpViewType.ppViewSlide ||
-                    activeWindow.ViewType == PowerPoint.PpViewType.ppViewNormal)
-                {
-                    return activeWindow.View.Slide;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Failed to get current slide");
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// 図形が線かどうかを判定します
-        /// </summary>
-        private bool IsLineShape(PowerPoint.Shape shape)
-        {
-            try
-            {
-                // 線図形の判定
-                if (shape.Type == MsoShapeType.msoLine)
-                    return true;
-
-                // フリーフォーム（コネクタを含む）の判定
-                if (shape.Type == MsoShapeType.msoFreeform)
-                {
-                    // Connectorプロパティでコネクタかどうかを判定
-                    try
-                    {
-                        return shape.Connector == MsoTriState.msoTrue;
-                    }
-                    catch
-                    {
-                        // Connectorプロパティがない場合は、パスポイント数で判定
-                        return shape.Nodes.Count == 2;
-                    }
-                }
-
-                // オートシェイプの線タイプの判定
-                if (shape.Type == MsoShapeType.msoAutoShape)
-                {
-                    return shape.AutoShapeType == MsoAutoShapeType.msoShapeMixed;
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, $"Failed to determine if shape {shape.Name} is a line");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 線を水平にします（長さを保持）
-        /// </summary>
         private void MakeLineHorizontalInternal(PowerPoint.Shape lineShape)
         {
             try
@@ -1592,53 +1380,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
             }
         }
 
-        /// <summary>
-        /// 図形が似ているかどうかを判定します
-        /// </summary>
-        private bool IsSimilarShape(PowerPoint.Shape reference, PowerPoint.Shape target)
-        {
-            try
-            {
-                return reference.Type == target.Type &&
-                       reference.AutoShapeType == target.AutoShapeType;
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
-        /// <summary>
-        /// 図形を選択します
-        /// </summary>
-        private void SelectShapes(List<PowerPoint.Shape> shapes)
-        {
-            try
-            {
-                var addin = Globals.ThisAddIn;
-                var activeWindow = addin.Application.ActiveWindow;
-
-                if (shapes.Count == 1)
-                {
-                    shapes[0].Select();
-                }
-                else if (shapes.Count > 1)
-                {
-                    shapes[0].Select();
-                    for (int i = 1; i < shapes.Count; i++)
-                    {
-                        shapes[i].Select(MsoTriState.msoFalse);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Failed to select shapes");
-            }
-        }
-
-
-        #endregion
 
 
 
@@ -1656,11 +1398,11 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("ConvertTableToTextBoxes operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "表をテキストボックスに変換")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "表をテキストボックスに変換")) return;
 
             // 表図形のみを対象とする
-            var tableShapes = selectedShapes.Where(s => IsTableShape(s.Shape)).ToList();
+            var tableShapes = selectedShapes.Where(s => helper.IsTableShape(s.Shape)).ToList();
             if (tableShapes.Count == 0)
             {
                 ErrorHandler.ExecuteSafely(() =>
@@ -1672,7 +1414,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 foreach (var tableShape in tableShapes)
@@ -1702,8 +1444,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("ConvertTextBoxesToTable operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 0, "テキストボックスを表に変換")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 0, "テキストボックスを表に変換")) return;
 
             // テキストボックス/図形のみを対象とする
             var textBoxShapes = selectedShapes.Where(s =>
@@ -1720,11 +1462,11 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 // グリッド配置を検出
-                var gridInfo = DetectGridLayout(textBoxShapes);
+                var gridInfo = helper.DetectGridLayout(textBoxShapes);
                 if (gridInfo == null)
                 {
                     ErrorHandler.ExecuteSafely(() =>
@@ -1861,7 +1603,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                     var shapeGrid = ConvertToShapeGrid(createdTextBoxes, tableRows, tableColumns);
                     UnifyRowHeightsInGrid(shapeGrid);
                     AdjustPositionsAfterHeightUnification(shapeGrid, baseLeft, baseTop, spacing);
-                    SelectShapes(createdTextBoxes);
+                    helper.SelectShapes(createdTextBoxes);
                 }
 
                 logger.Info($"Converted table to {createdTextBoxes.Count} text boxes with original cell sizes and 0.2cm spacing");
@@ -1878,91 +1620,14 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="shapes">図形リスト</param>
         /// <returns>グリッド情報、検出できない場合はnull</returns>
-        // PowerToolService.cs - DetectGridLayout() 修正版
+        // PowerToolService.cs - helper.DetectGridLayout() 修正版
         /// <summary>
         /// グリッド配置を検出します（動的許容誤差版）
-        /// </summary>
-        /// <param name="shapes">図形リスト</param>
-        /// <returns>グリッド情報、検出できない場合はnull</returns>
-        private GridInfo DetectGridLayout(List<ShapeInfo> shapes)
-        {
-            try
-            {
-                // 動的な許容誤差を計算
-                var tolerance = CalculateDynamicTolerance(shapes, true); // Y座標用
-                var rows = new List<List<ShapeInfo>>();
-
-                foreach (var shape in shapes.OrderBy(s => s.Top))
-                {
-                    var assignedToRow = false;
-                    foreach (var row in rows)
-                    {
-                        var avgY = row.Average(s => s.Top);
-                        if (Math.Abs(shape.Top - avgY) <= tolerance)
-                        {
-                            row.Add(shape);
-                            assignedToRow = true;
-                            break;
-                        }
-                    }
-                    if (!assignedToRow)
-                    {
-                        rows.Add(new List<ShapeInfo> { shape });
-                    }
-                }
-
-                // 各行をX座標でソート
-                foreach (var row in rows)
-                {
-                    row.Sort((a, b) => a.Left.CompareTo(b.Left));
-                }
-
-                // グリッド情報を構築
-                var gridInfo = new GridInfo
-                {
-                    Rows = rows.Count,
-                    Columns = rows.Max(r => r.Count),
-                    ShapeGrid = rows,
-                    TopLeft = rows.First().First() // 左上の図形
-                };
-
-                logger.Debug($"Grid detected: {gridInfo.Rows}x{gridInfo.Columns} with tolerance {tolerance:F1}pt");
-                return gridInfo;
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Failed to detect grid layout");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// 動的な許容誤差を計算します（PowerToolService用）
-        /// </summary>
-        /// <param name="shapes">図形リスト</param>
-        /// <param name="isVertical">true=Y座標用（高さベース）、false=X座標用（幅ベース）</param>
-        /// <returns>計算された許容誤差（ポイント）</returns>
-        private float CalculateDynamicTolerance(List<ShapeInfo> shapes, bool isVertical)
-        {
-            if (!shapes.Any()) return 10f;
-
-            var averageSize = isVertical
-                ? shapes.Average(s => s.Height)
-                : shapes.Average(s => s.Width);
-
-            var calculatedTolerance = averageSize * 0.3f;
-            const float MIN_TOLERANCE = 3f;
-            const float MAX_TOLERANCE = 25f;
-
-            return Math.Max(MIN_TOLERANCE, Math.Min(MAX_TOLERANCE, calculatedTolerance));
-        }
-
-        /// <summary>
         /// グリッドを表に変換します
         /// </summary>
         /// <param name="slide">スライド</param>
         /// <param name="gridInfo">グリッド情報</param>
-        private void ConvertGridToTable(PowerPoint.Slide slide, GridInfo gridInfo)
+        private void ConvertGridToTable(PowerPoint.Slide slide, PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
@@ -2073,30 +1738,6 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
         /// <summary>
         /// 図形が表かどうかを判定します
-        /// </summary>
-        /// <param name="shape">図形</param>
-        /// <returns>表の場合true</returns>
-        private bool IsTableShape(PowerPoint.Shape shape)
-        {
-            try
-            {
-                return shape.HasTable == MsoTriState.msoTrue;
-            }
-            catch (Exception)
-            {
-                try
-                {
-                    return shape.Type == MsoShapeType.msoTable;
-                }
-                catch (Exception ex)
-                {
-                    logger.Error(ex, $"Failed to determine if shape {shape.Name} is a table");
-                    return false;
-                }
-            }
-        }
-
-        /// <summary>
         /// テキスト書式をコピーします
         /// </summary>
         private void CopyTextFormat(PowerPoint.TextRange source, PowerPoint.TextRange target)
@@ -2153,13 +1794,13 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("OptimizeMatrixRowHeights operation started (practical approach)");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "行高さ最適化")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "行高さ最適化")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
                 // 表の場合
-                var tableShapes = selectedShapes.Where(s => IsTableShape(s.Shape)).ToList();
+                var tableShapes = selectedShapes.Where(s => helper.IsTableShape(s.Shape)).ToList();
                 if (tableShapes.Count > 0)
                 {
                     int optimizedRows = 0;
@@ -2180,7 +1821,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 var textBoxShapes = selectedShapes.Where(s => s.HasTextFrame || s.Shape.Type == MsoShapeType.msoTextBox).ToList();
                 if (textBoxShapes.Count >= 2)
                 {
-                    var gridInfo = DetectGridLayout(textBoxShapes);
+                    var gridInfo = helper.DetectGridLayout(textBoxShapes);
                     if (gridInfo != null)
                     {
                         OptimizeTextBoxMatrixRowHeights(gridInfo);
@@ -2233,7 +1874,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                         {
                             var cell = table.Cell(row, col);
                             var estimatedLines = EstimateLinesInTableCell(cell);
-                            var requiredHeight = heightPatterns.ContainsKey(estimatedLines) ? heightPatterns[estimatedLines] : 35f; 
+                            var requiredHeight = heightPatterns.ContainsKey(estimatedLines) ? heightPatterns[estimatedLines] : 35f;
                             maxRequiredHeight = Math.Max(maxRequiredHeight, requiredHeight);
 
                             logger.Debug($"Cell [{row},{col}]: {estimatedLines} lines → {requiredHeight:F1}pt");
@@ -2262,7 +1903,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// テキストボックス群の行高さを最適化します
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
-        private void OptimizeTextBoxMatrixRowHeights(GridInfo gridInfo)
+        private void OptimizeTextBoxMatrixRowHeights(PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
@@ -2315,7 +1956,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
         /// <param name="rowHeights">各行の高さ</param>
-        private void AdjustHeightsAndPositions(GridInfo gridInfo, float[] rowHeights)
+        private void AdjustHeightsAndPositions(PowerToolServiceHelper.GridInfo gridInfo, float[] rowHeights)
         {
             try
             {
@@ -2502,13 +2143,13 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("OptimizeTableComplete operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "表最適化")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "表最適化")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
                 // 表の場合
-                var tableShapes = selectedShapes.Where(s => IsTableShape(s.Shape)).ToList();
+                var tableShapes = selectedShapes.Where(s => helper.IsTableShape(s.Shape)).ToList();
                 if (tableShapes.Count > 0)
                 {
                     int optimizedTables = 0;
@@ -2530,7 +2171,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 var textBoxShapes = selectedShapes.Where(s => s.HasTextFrame || s.Shape.Type == MsoShapeType.msoTextBox).ToList();
                 if (textBoxShapes.Count >= 2)
                 {
-                    var gridInfo = DetectGridLayout(textBoxShapes);
+                    var gridInfo = helper.DetectGridLayout(textBoxShapes);
                     if (gridInfo != null)
                     {
                         CompleteOptimizeTextBoxGrid(gridInfo);
@@ -2561,7 +2202,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         {
             try
             {
-                
+
                 logger.Info($"=== Table Complete Optimization Started ===");
                 logger.Info($"Table size: {table.Rows.Count}x{table.Columns.Count}");
 
@@ -2773,7 +2414,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// テキストボックスグリッドの完全最適化を実行します
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
-        private void CompleteOptimizeTextBoxGrid(GridInfo gridInfo)
+        private void CompleteOptimizeTextBoxGrid(PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
@@ -2811,7 +2452,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
         /// <returns>各列の最適幅配列</returns>
-        private float[] CalculateOptimalTextBoxColumnWidths(GridInfo gridInfo)
+        private float[] CalculateOptimalTextBoxColumnWidths(PowerToolServiceHelper.GridInfo gridInfo)
         {
             var columnWidths = new float[gridInfo.Columns];
             var minColumnWidth = 30f;
@@ -2916,7 +2557,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
         /// <returns>各行の最適高さ配列</returns>
-        private float[] CalculateOptimalTextBoxRowHeights(GridInfo gridInfo)
+        private float[] CalculateOptimalTextBoxRowHeights(PowerToolServiceHelper.GridInfo gridInfo)
         {
             var rowHeights = new float[gridInfo.Rows];
             var minRowHeight = 20f;
@@ -2952,7 +2593,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
         /// <returns>現在の総幅</returns>
-        private float CalculateCurrentGridWidth(GridInfo gridInfo)
+        private float CalculateCurrentGridWidth(PowerToolServiceHelper.GridInfo gridInfo)
         {
             var columnWidths = new float[gridInfo.Columns];
 
@@ -2978,7 +2619,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
         /// <returns>間隔（ポイント）</returns>
-        private float CalculateCurrentGridSpacing(GridInfo gridInfo)
+        private float CalculateCurrentGridSpacing(PowerToolServiceHelper.GridInfo gridInfo)
         {
             if (gridInfo.Columns > 1 && gridInfo.ShapeGrid[0].Count > 1)
             {
@@ -2996,7 +2637,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// <param name="columnWidths">列幅配列</param>
         /// <param name="rowHeights">行高配列</param>
         /// <param name="spacing">間隔</param>
-        private void ApplyOptimizedDimensionsToGrid(GridInfo gridInfo, float[] columnWidths, float[] rowHeights, float spacing)
+        private void ApplyOptimizedDimensionsToGrid(PowerToolServiceHelper.GridInfo gridInfo, float[] columnWidths, float[] rowHeights, float spacing)
         {
             var baseLeft = gridInfo.TopLeft.Left;
             var baseTop = gridInfo.TopLeft.Top;
@@ -3120,8 +2761,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AddMatrixRowSeparators operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 0, "行間区切り線")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 0, "行間区切り線")) return;
 
             // テキストボックス群のみを対象とする
             var textBoxShapes = selectedShapes.Where(s =>
@@ -3137,7 +2778,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
             }
 
             // グリッド配置を検出（既存メソッド流用）
-            var gridInfo = DetectGridLayout(textBoxShapes);
+            var gridInfo = helper.DetectGridLayout(textBoxShapes);
             if (gridInfo == null)
             {
                 ErrorHandler.ExecuteSafely(() =>
@@ -3179,7 +2820,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 // COM管理下で区切り線を作成（既存パターン流用）
                 ComHelper.ExecuteWithComCleanup(() =>
                 {
-                    var slide = GetCurrentSlide(); // 既存メソッド流用
+                    var slide = helper.GetCurrentSlide(); // 既存メソッド流用
                     if (slide == null)
                     {
                         ErrorHandler.ExecuteSafely(() =>
@@ -3196,7 +2837,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                     // 作成した線を選択状態にする（既存パターン流用）
                     if (createdLines.Count > 0)
                     {
-                        SelectShapes(createdLines); // 既存メソッド流用
+                        helper.SelectShapes(createdLines); // 既存メソッド流用
                     }
 
                 }, selectedShapes.Select(s => s.Shape).ToArray());
@@ -3225,7 +2866,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// <returns>作成された線図形のリスト</returns>
         private List<PowerPoint.Shape> CreateRowSeparatorLines(
             PowerPoint.Slide slide,
-            GridInfo gridInfo,
+            PowerToolServiceHelper.GridInfo gridInfo,
             MsoLineDashStyle lineStyle,
             float lineWeight,
             Color lineColor)
@@ -3285,7 +2926,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
         /// <returns>区切り線位置のリスト</returns>
-        private List<SeparatorLinePosition> CalculateRowSeparatorPositions(GridInfo gridInfo)
+        private List<SeparatorLinePosition> CalculateRowSeparatorPositions(PowerToolServiceHelper.GridInfo gridInfo)
         {
             var positions = new List<SeparatorLinePosition>();
 
@@ -3436,7 +3077,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// </summary>
         private List<PowerPoint.Shape> CreateRowSeparatorLines(
             PowerPoint.Slide slide,
-            GridInfo gridInfo, // nullの場合はpositionsを直接使用
+            PowerToolServiceHelper.GridInfo gridInfo, // nullの場合はpositionsを直接使用
             MsoLineDashStyle lineStyle,
             float lineWeight,
             Color lineColor,
@@ -3489,7 +3130,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         {
             try
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 var separatorShapes = new List<PowerPoint.Shape>();
@@ -3510,7 +3151,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 logger.Info($"Found {separatorShapes.Count} separators, realigning...");
 
                 // 現在選択されている図形を取得（最適化対象）
-                var selectedShapes = GetSelectedShapeInfos();
+                var selectedShapes = helper.GetSelectedShapeInfos();
                 var matrixShapes = selectedShapes.Where(s =>
                     s.Shape.HasTable == MsoTriState.msoTrue ||
                     s.HasTextFrame ||
@@ -3519,17 +3160,17 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 if (matrixShapes.Count == 0) return;
 
                 // グリッド情報を取得
-                GridInfo gridInfo = null;
+                PowerToolServiceHelper.GridInfo gridInfo = null;
                 var tableShapes = matrixShapes.Where(s => s.Shape.HasTable == MsoTriState.msoTrue).ToList();
 
                 if (tableShapes.Count > 0)
                 {
-                    var (gInfo, _) = DetectTableMatrixLayout(tableShapes[0]);
+                    var (gInfo, _) = helper.DetectTableMatrixLayout(tableShapes[0]);
                     gridInfo = gInfo;
                 }
                 else
                 {
-                    gridInfo = DetectGridLayout(matrixShapes);
+                    gridInfo = helper.DetectGridLayout(matrixShapes);
                 }
 
                 if (gridInfo == null) return;
@@ -3599,12 +3240,12 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AlignShapesToCells operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 0, "図形セル整列")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 0, "図形セル整列")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 // マトリクス図形と整列対象図形を分離
@@ -3633,7 +3274,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 }
 
                 // マトリクス情報を取得
-                var (gridInfo, isTable) = DetectMatrixLayout(matrixShapes);
+                var (gridInfo, isTable) = helper.DetectMatrixLayout(matrixShapes);
                 if (gridInfo == null)
                 {
                     ErrorHandler.ExecuteSafely(() =>
@@ -3699,8 +3340,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 // --- マトリクス候補（テーブル / テキストボックス / 矩形系 / （任意）本文・タイトル・表のプレースホルダー）
                 if (shp.HasTable == MsoTriState.msoTrue
                     || type == MsoShapeType.msoTextBox
-                    || IsRectLikeAutoShape(shp)
-                    || IsMatrixPlaceholder(shp))
+                    || PowerToolServiceHelper.IsRectLikeAutoShape(shp)
+                    || PowerToolServiceHelper.IsMatrixPlaceholder(shp))
                 {
                     matrixShapes.Add(si);
                     continue;
@@ -3719,28 +3360,6 @@ namespace PowerPointEfficiencyAddin.Services.Core
             return (matrixShapes, targetShapes);
         }
 
-        private static readonly HashSet<MsoAutoShapeType> RectLikeAutoShapes = new HashSet<MsoAutoShapeType>
-        {
-            MsoAutoShapeType.msoShapeRectangle,
-            MsoAutoShapeType.msoShapeRoundedRectangle
-            // マトリクスとして認識したい図形を必要なら追加（Snip/Chamfer 角など）
-        };
-
-        private static bool IsRectLikeAutoShape(PowerPoint.Shape shp)
-        {
-            return shp.Type == MsoShapeType.msoAutoShape
-                   && RectLikeAutoShapes.Contains(shp.AutoShapeType);
-        }
-
-        private static bool IsMatrixPlaceholder(PowerPoint.Shape shp)
-        {
-            if (shp.Type != MsoShapeType.msoPlaceholder) return false;
-            var pt = shp.PlaceholderFormat.Type; // PpPlaceholderType
-            return pt == PowerPoint.PpPlaceholderType.ppPlaceholderBody
-                || pt == PowerPoint.PpPlaceholderType.ppPlaceholderTitle
-                || pt == PowerPoint.PpPlaceholderType.ppPlaceholderTable;
-        }
-
         /// <summary>
         /// セル情報
         /// </summary>
@@ -3757,72 +3376,6 @@ namespace PowerPointEfficiencyAddin.Services.Core
         }
 
         /// <summary>
-        /// マトリクス配置を検出（テーブル・テキストボックス統合）
-        /// </summary>
-        /// <param name="matrixShapes">マトリクス候補図形</param>
-        /// <returns>グリッド情報とテーブル判定のタプル</returns>
-        private (GridInfo gridInfo, bool isTable) DetectMatrixLayout(List<ShapeInfo> matrixShapes)
-        {
-            // テーブルが含まれているかチェック
-            var tableShapes = matrixShapes.Where(s => s.Shape.HasTable == MsoTriState.msoTrue).ToList();
-            var textBoxShapes = matrixShapes.Where(s => s.HasTextFrame || s.Shape.Type == MsoShapeType.msoTextBox).ToList();
-
-            if (tableShapes.Count > 0)
-            {
-                if (textBoxShapes.Count > 0)
-                {
-                    logger.Info("表とテキストボックスが混在しています。テキストボックスをマトリクス基準として処理します。");
-                }
-
-                // テーブル優先（ただし上記ログの通り、実際はテキストボックス優先）
-                if (textBoxShapes.Count >= 2)
-                {
-                    var gridInfo = DetectGridLayout(textBoxShapes);
-                    return (gridInfo, false); // テキストボックスグリッド
-                }
-                else if (tableShapes.Count == 1)
-                {
-                    return DetectTableMatrixLayout(tableShapes[0]);
-                }
-            }
-            else if (textBoxShapes.Count >= 2)
-            {
-                var gridInfo = DetectGridLayout(textBoxShapes);
-                return (gridInfo, false); // テキストボックスグリッド
-            }
-
-            return (null, false);
-        }
-
-        /// <summary>
-        /// テーブルのマトリクス配置を検出
-        /// </summary>
-        /// <param name="tableShape">テーブル図形</param>
-        /// <returns>グリッド情報とテーブル判定のタプル</returns>
-        private (GridInfo gridInfo, bool isTable) DetectTableMatrixLayout(ShapeInfo tableShape)
-        {
-            try
-            {
-                var table = tableShape.Shape.Table;
-
-                // テーブル用のGridInfoを作成（既存のGridInfoクラスを活用）
-                var gridInfo = new GridInfo
-                {
-                    Rows = table.Rows.Count,
-                    Columns = table.Columns.Count,
-                    ShapeGrid = null, // テーブルの場合はShapeGridはnull
-                    TopLeft = tableShape
-                };
-
-                return (gridInfo, true); // テーブル
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex, "Failed to detect table matrix layout");
-                return (null, false);
-            }
-        }
-
         /// <summary>
         /// セル情報を取得
         /// </summary>
@@ -3830,7 +3383,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// <param name="isTable">テーブルかどうか</param>
         /// <param name="matrixShapes">マトリクス図形（テーブルの場合に使用）</param>
         /// <returns>セル情報リスト</returns>
-        private List<CellInfo> GetCellInformations(GridInfo gridInfo, bool isTable, List<ShapeInfo> matrixShapes)
+        private List<CellInfo> GetCellInformations(PowerToolServiceHelper.GridInfo gridInfo, bool isTable, List<ShapeInfo> matrixShapes)
         {
             var cellInfos = new List<CellInfo>();
 
@@ -4037,12 +3590,12 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AddHeaderRowToMatrix operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "見出し行付与")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "見出し行付与")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 // テーブルかグリッドかを判定
@@ -4123,7 +3676,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
             }
 
 
-            
+
             // 4. 見出し行の高さを最適化
             foreach (var header in headerShapes)
             {
@@ -4135,13 +3688,13 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 header.TextFrame.AutoSize = PowerPoint.PpAutoSize.ppAutoSizeNone;
                 header.Height = maxHeaderHeight;
             }
-            
-            
+
+
             // 5. 0.8mm間隔で配置
             const float SPACING_PT = 10.0f * 2.835f; // 0.8mm
             var headerTop = topMost - maxHeaderHeight - SPACING_PT;
 
-            
+
             // 見出し行を配置
             foreach (var header in headerShapes)
             {
@@ -4174,8 +3727,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("SetCellMargins operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "セルマージン設定")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "セルマージン設定")) return;
 
             // マージン設定ダイアログを表示
             using (var dialog = new MarginAdjustmentDialog("セルマージン設定"))
@@ -4348,8 +3901,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AddMatrixRow operation started (Phase 1)");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "行追加")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "行追加")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -4375,7 +3928,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
                     if (textBoxShapes.Count >= 2)
                     {
-                        var gridInfo = DetectGridLayout(textBoxShapes);
+                        var gridInfo = helper.DetectGridLayout(textBoxShapes);
                         if (gridInfo != null)
                         {
                             AddRowToObjectMatrix(gridInfo);
@@ -4416,8 +3969,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("AddMatrixColumn operation started (Phase 1)");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "列追加")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "列追加")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -4443,7 +3996,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
                     if (textBoxShapes.Count >= 2)
                     {
-                        var gridInfo = DetectGridLayout(textBoxShapes);
+                        var gridInfo = helper.DetectGridLayout(textBoxShapes);
                         if (gridInfo != null)
                         {
                             AddColumnToObjectMatrix(gridInfo);
@@ -4630,11 +4183,11 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// オブジェクトマトリクスに行を追加します
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
-        private void AddRowToObjectMatrix(GridInfo gridInfo)
+        private void AddRowToObjectMatrix(PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null)
                 {
                     throw new InvalidOperationException("アクティブなスライドが見つかりません。");
@@ -4725,11 +4278,11 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// オブジェクトマトリクスに列を追加します
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
-        private void AddColumnToObjectMatrix(GridInfo gridInfo)
+        private void AddColumnToObjectMatrix(PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null)
                 {
                     throw new InvalidOperationException("アクティブなスライドが見つかりません。");
@@ -4892,7 +4445,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                 if (shapes == null || shapes.Count == 0) return;
 
                 var application = applicationProvider.GetCurrentApplication();
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 // 最初の図形を選択
@@ -4922,8 +4475,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("EqualizeColumnWidths operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "列幅統一")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "列幅統一")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -4950,7 +4503,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
                     if (textBoxShapes.Count >= 2)
                     {
-                        var gridInfo = DetectGridLayout(textBoxShapes);
+                        var gridInfo = helper.DetectGridLayout(textBoxShapes);
                         if (gridInfo != null)
                         {
                             // ★修正点: グリッド再配置対応版を使用
@@ -4992,8 +4545,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("EqualizeRowHeights operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "行高統一")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "行高統一")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -5020,7 +4573,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
                     if (textBoxShapes.Count >= 2)
                     {
-                        var gridInfo = DetectGridLayout(textBoxShapes);
+                        var gridInfo = helper.DetectGridLayout(textBoxShapes);
                         if (gridInfo != null)
                         {
                             // ★修正点: グリッド再配置対応版を使用
@@ -5127,7 +4680,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// オブジェクトマトリクスの列幅を等幅に設定します
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
-        private void EqualizeObjectMatrixColumnWidths(GridInfo gridInfo)
+        private void EqualizeObjectMatrixColumnWidths(PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
@@ -5176,7 +4729,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         /// オブジェクトマトリクスの行高を等高に設定します
         /// </summary>
         /// <param name="gridInfo">グリッド情報</param>
-        private void EqualizeObjectMatrixRowHeights(GridInfo gridInfo)
+        private void EqualizeObjectMatrixRowHeights(PowerToolServiceHelper.GridInfo gridInfo)
         {
             try
             {
@@ -5233,7 +4786,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         {
             try
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null) return;
 
                 var separatorShapes = new List<PowerPoint.Shape>();
@@ -5291,8 +4844,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("MatrixTuner operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 2, 225, "Matrix Tuner")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 2, 225, "Matrix Tuner")) return;
 
             // 矩形系オブジェクトのみを対象とする
             var rectangularShapes = selectedShapes.Where(s => IsRectangularShape(s)).ToList();
@@ -5325,7 +4878,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
             }
 
             // グリッド配置を検出
-            var gridInfo = DetectGridLayout(rectangularShapes);
+            var gridInfo = helper.DetectGridLayout(rectangularShapes);
             if (gridInfo == null)
             {
                 ErrorHandler.ExecuteSafely(() =>
@@ -5591,17 +5144,6 @@ namespace PowerPointEfficiencyAddin.Services.Core
             }
         }
 
-        /// <summary>
-        /// グリッド情報を格納するクラス
-        /// </summary>
-        public class GridInfo
-        {
-            public int Rows { get; set; }
-            public int Columns { get; set; }
-            public List<List<ShapeInfo>> ShapeGrid { get; set; }
-            public ShapeInfo TopLeft { get; set; }
-        }
-
         #endregion
 
         #region 画像圧縮機能
@@ -5616,8 +5158,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("CompressImages operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "画像圧縮")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "画像圧縮")) return;
 
             // 画像図形のみを抽出
             var imageShapes = selectedShapes.Where(s => IsImageShape(s.Shape)).ToList();
@@ -5935,7 +5477,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         {
             try
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null)
                 {
                     throw new InvalidOperationException("アクティブなスライドが見つかりません。");
@@ -6066,14 +5608,14 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("SelectSameColorShapes operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 1, "同色図形の一括選択")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 1, "同色図形の一括選択")) return;
 
             var referenceShape = selectedShapes.First();
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null)
                 {
                     ErrorHandler.ExecuteSafely(() =>
@@ -6130,7 +5672,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                     }
 
                     // 図形を選択
-                    SelectShapes(sameColorShapes);
+                    helper.SelectShapes(sameColorShapes);
 
                     logger.Info($"Selected {sameColorShapes.Count} shapes with same color");
                 }
@@ -6154,14 +5696,14 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("SelectSameSizeShapes operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 1, "同サイズ図形の一括選択")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 1, "同サイズ図形の一括選択")) return;
 
             var referenceShape = selectedShapes.First();
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null)
                 {
                     ErrorHandler.ExecuteSafely(() =>
@@ -6209,7 +5751,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
                     }
 
                     // 図形を選択
-                    SelectShapes(sameSizeShapes);
+                    helper.SelectShapes(sameSizeShapes);
 
                     logger.Info($"Selected {sameSizeShapes.Count} shapes with same size ({referenceWidth}x{referenceHeight})");
                 }
@@ -6233,8 +5775,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("TransparencyUpToggle operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "図形背景の透過率Up")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "図形背景の透過率Up")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -6294,8 +5836,8 @@ namespace PowerPointEfficiencyAddin.Services.Core
 
             logger.Info("TransparencyDownToggle operation started");
 
-            var selectedShapes = GetSelectedShapeInfos();
-            if (!ValidateSelection(selectedShapes, 1, 0, "図形背景の透過率Down")) return;
+            var selectedShapes = helper.GetSelectedShapeInfos();
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "図形背景の透過率Down")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -6451,7 +5993,7 @@ namespace PowerPointEfficiencyAddin.Services.Core
         {
             ComHelper.ExecuteWithComCleanup(() =>
             {
-                var slide = GetCurrentSlide();
+                var slide = helper.GetCurrentSlide();
                 if (slide == null)
                 {
                     throw new InvalidOperationException("アクティブなスライドが見つかりません。");
