@@ -267,7 +267,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Services\UI\TaskPane\TaskPaneManager.cs" />
-    <Compile Include="Services\Core\Text\TextFormatService.cs.cs" />
+    <Compile Include="Services\Core\Text\TextFormatService.cs" />
     <Compile Include="Services\Infrastructure\Update\UpdateService.cs" />
     <Compile Include="Views\CustomTaskPaneUserControl.cs">
       <SubType>UserControl</SubType>
