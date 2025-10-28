@@ -237,7 +237,7 @@
     <Compile Include="Models\Licensing\FeatureAccessLevel.cs" />
     <Compile Include="Models\Licensing\FeatureDefinition.cs" />
     <Compile Include="Models\UpdateInfo.cs" />
-    <Compile Include="Services\Licensing\FeatureRegistry.cs" />
+    <Compile Include="Services\Infrastructure\Licensing\FeatureRegistry.cs" />
     <Compile Include="Models\Licensing\LicenseInfo.cs" />
     <Compile Include="Models\Licensing\LicenseStatus.cs" />
     <Compile Include="Models\Licensing\LicenseValidationResult.cs" />
@@ -248,46 +248,46 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Ribbon\ViewRibbon.cs" />
-    <Compile Include="Services\AlignmentService.cs" />
-    <Compile Include="Services\ImageCompressionDialog.cs">
+    <Compile Include="Services\Core\Alignment\AlignmentService.cs" />
+    <Compile Include="Services\UI\Dialogs\ImageCompressionDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Services\Licensing\LicenseApiClient.cs" />
-    <Compile Include="Services\Licensing\LicenseCache.cs" />
-    <Compile Include="Services\Licensing\LicenseManager.cs" />
-    <Compile Include="Services\MultiInstance\ApplicationContextManager.cs" />
-    <Compile Include="Services\MultiInstance\DefaultApplicationProvider.cs" />
-    <Compile Include="Services\MultiInstance\IApplicationProvider.cs" />
-    <Compile Include="Services\MultiInstance\MultiInstanceApplicationProvider.cs" />
-    <Compile Include="Services\PowerToolService.cs" />
-    <Compile Include="Services\Security\RegistryManager.cs" />
-    <Compile Include="Services\SettingsService.cs" />
-    <Compile Include="Services\ShapeService.cs" />
-    <Compile Include="Services\SpacingAdjustmentDialog.cs">
+    <Compile Include="Services\Infrastructure\Licensing\LicenseApiClient.cs" />
+    <Compile Include="Services\Infrastructure\Licensing\LicenseCache.cs" />
+    <Compile Include="Services\Infrastructure\Licensing\LicenseManager.cs" />
+    <Compile Include="Services\Infrastructure\MultiInstance\ApplicationContextManager.cs" />
+    <Compile Include="Services\Infrastructure\MultiInstance\DefaultApplicationProvider.cs" />
+    <Compile Include="Services\Infrastructure\MultiInstance\IApplicationProvider.cs" />
+    <Compile Include="Services\Infrastructure\MultiInstance\MultiInstanceApplicationProvider.cs" />
+    <Compile Include="Services\Core\PowerToolService.cs" />
+    <Compile Include="Services\Infrastructure\Security\RegistryManager.cs" />
+    <Compile Include="Services\Infrastructure\Settings\SettingsService.cs" />
+    <Compile Include="Services\Core\Shape\ShapeService.cs" />
+    <Compile Include="Services\UI\Dialogs\SpacingAdjustmentDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Services\TaskPaneManager.cs.cs" />
-    <Compile Include="Services\TextFormatService.cs.cs" />
-    <Compile Include="Services\UpdateService.cs" />
-    <Compile Include="UI\CustomTaskPaneUserControl.cs">
+    <Compile Include="Services\UI\TaskPane\TaskPaneManager.cs" />
+    <Compile Include="Services\Core\Text\TextFormatService.cs.cs" />
+    <Compile Include="Services\Infrastructure\Update\UpdateService.cs" />
+    <Compile Include="Views\CustomTaskPaneUserControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UI\CustomTaskPaneUserControl.Designer.cs">
+    <Compile Include="Views\CustomTaskPaneUserControl.Designer.cs">
       <DependentUpon>CustomTaskPaneUserControl.cs</DependentUpon>
     </Compile>
-    <Compile Include="UI\LicenseSettingsDialog.cs">
+    <Compile Include="Services\UI\Dialogs\LicenseSettingsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\LineSeparatorDialog.cs">
+    <Compile Include="Services\UI\Dialogs\LineSeparatorDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\MarginAdjustmentDialog.cs">
+    <Compile Include="Services\UI\Dialogs\MarginAdjustmentDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\MatrixTunerDialog.cs">
+    <Compile Include="Services\UI\Dialogs\MatrixTunerDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\ShapeStyleDialog.cs">
+    <Compile Include="Services\UI\Dialogs\ShapeStyleDialog.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Utils\ComHelper.cs" />

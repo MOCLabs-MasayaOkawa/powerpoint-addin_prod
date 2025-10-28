@@ -23,4 +23,3 @@ C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiency
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\Newtonsoft.Json.dll
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\Newtonsoft.Json.xml
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\PowerPointEfficiencyAddin.dll.config
-C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.dll.config
