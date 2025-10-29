@@ -2,8 +2,8 @@
 using NLog;
 using PowerPointEfficiencyAddin.Models;
 using PowerPointEfficiencyAddin.Models.Licensing;
-using PowerPointEfficiencyAddin.Services.Core;
 using PowerPointEfficiencyAddin.Services.Core.Alignment;
+using PowerPointEfficiencyAddin.Services.Core.PowerTool;
 using PowerPointEfficiencyAddin.Services.Core.Shape;
 using PowerPointEfficiencyAddin.Services.Core.Text;
 using PowerPointEfficiencyAddin.Services.Infrastructure.Licensing;
@@ -519,6 +519,7 @@ namespace PowerPointEfficiencyAddin.UI
             var functions = new[]
             {
                 // 1行目
+
                 new FunctionItem("SizeUpToggle", "サイズUp", "選択した図形のサイズを5%大きくします（累積効果）", "size_up.png",
                     () => SafeExecuteFunction(() => shapeService.SizeUpToggle(), "サイズUp"), FunctionCategory.Format, 1, 0),
                 new FunctionItem("SizeDownToggle", "サイズDown", "選択した図形のサイズを5%小さくします（累積効果）", "size_down.png",

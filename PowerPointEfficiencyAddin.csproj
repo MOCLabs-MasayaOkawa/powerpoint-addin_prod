@@ -262,7 +262,7 @@
     <Compile Include="Services\Infrastructure\MultiInstance\DefaultApplicationProvider.cs" />
     <Compile Include="Services\Infrastructure\MultiInstance\IApplicationProvider.cs" />
     <Compile Include="Services\Infrastructure\MultiInstance\MultiInstanceApplicationProvider.cs" />
-    <Compile Include="Services\Core\PowerToolService.cs" />
+    <Compile Include="Services\Core\PowerTool\PowerToolService.cs" />
     <Compile Include="Services\Infrastructure\Security\RegistryManager.cs" />
     <Compile Include="Services\Infrastructure\Settings\SettingsService.cs" />
     <Compile Include="Services\Core\Shape\ShapeService.cs" />

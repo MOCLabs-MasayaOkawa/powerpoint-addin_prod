@@ -1,7 +1,7 @@
 ﻿using Microsoft.Office.Tools;
 using NLog;
-using PowerPointEfficiencyAddin.Services.Core;
 using PowerPointEfficiencyAddin.Services.Core.Alignment;
+using PowerPointEfficiencyAddin.Services.Core.PowerTool;
 using PowerPointEfficiencyAddin.Services.Core.Shape;
 using PowerPointEfficiencyAddin.Services.Core.Text;
 using PowerPointEfficiencyAddin.Services.Infrastructure.MultiInstance;
