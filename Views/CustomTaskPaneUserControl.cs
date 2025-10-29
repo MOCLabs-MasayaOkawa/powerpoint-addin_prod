@@ -3,10 +3,13 @@ using NLog;
 using PowerPointEfficiencyAddin.Models;
 using PowerPointEfficiencyAddin.Models.Licensing;
 using PowerPointEfficiencyAddin.Services.Core.Alignment;
+using PowerPointEfficiencyAddin.Services.Core.Image;
 using PowerPointEfficiencyAddin.Services.Core.PowerTool;
+using PowerPointEfficiencyAddin.Services.Core.Selection;
 using PowerPointEfficiencyAddin.Services.Core.Shape;
 using PowerPointEfficiencyAddin.Services.Core.Text;
 using PowerPointEfficiencyAddin.Services.Infrastructure.Licensing;
+using PowerPointEfficiencyAddin.Services.Infrastructure.MultiInstance;
 using PowerPointEfficiencyAddin.Services.UI.Dialogs;
 using PowerPointEfficiencyAddin.Utils;
 using System;
@@ -41,6 +44,8 @@ namespace PowerPointEfficiencyAddin.UI
         private AlignmentService alignmentService;
         private PowerToolService powerToolService;
         private TextFormatService textFormatService;
+        private ImageCompressionService imageCompressionService;
+        private ShapeSelectionService shapeSelectionService;
 
         // 機能定義
         private List<FunctionItem> allFunctions;
@@ -348,6 +353,8 @@ namespace PowerPointEfficiencyAddin.UI
             {
                 logger.Debug("Initializing services");
 
+                var applicationProvider = new DefaultApplicationProvider();
+
                 shapeService = new ShapeService();
                 logger.Debug("ShapeService created");
 
@@ -359,6 +366,12 @@ namespace PowerPointEfficiencyAddin.UI
 
                 textFormatService = new TextFormatService();
                 logger.Debug("TextFormatService created");
+
+                imageCompressionService = new ImageCompressionService(applicationProvider);
+                logger.Debug("ImageCompressionService created");
+
+                shapeSelectionService = new ShapeSelectionService(applicationProvider);
+                logger.Debug("ShapeSelectionService created");
 
                 logger.Info("All services initialized successfully");
             }
@@ -430,9 +443,9 @@ namespace PowerPointEfficiencyAddin.UI
             {
                 // 1行目
                 new FunctionItem("SelectSameColorShapes", "色で選択", "同スライド内の同じ色の図形を一括選択します", "select_same_color.png",
-                    () => SafeExecuteFunction(() => powerToolService.SelectSameColorShapes(), "色で選択"), FunctionCategory.Selection, 1, 0),
+                    () => SafeExecuteFunction(() => shapeSelectionService.SelectSameColorShapes(), "色で選択"), FunctionCategory.Selection, 1, 0),
                 new FunctionItem("SelectSameSizeShapes", "サイズで選択", "同スライド内の同じサイズの図形を一括選択します", "select_same_size.png",
-                    () => SafeExecuteFunction(() => powerToolService.SelectSameSizeShapes(), "サイズで選択"), FunctionCategory.Selection, 1, 1),
+                    () => SafeExecuteFunction(() => shapeSelectionService.SelectSameSizeShapes(), "サイズで選択"), FunctionCategory.Selection, 1, 1),
                 new FunctionItem("SelectSimilarShapes", "同種図形で選択", "選択した図形と同じ種類の図形をスライド内で一括選択します", "select_similar.png",
                     () => SafeExecuteFunction(() => powerToolService.SelectSimilarShapes(), "同種図形で選択"), FunctionCategory.Selection, 1, 2)
             };
@@ -531,9 +544,9 @@ namespace PowerPointEfficiencyAddin.UI
                 new FunctionItem("DashStyleToggle", "枠線の種類変更トグル", "選択した図形の枠線を実線→点線→破線→鎖線の順に変更します", "dash_style.png",
                     () => SafeExecuteFunction(() => shapeService.DashStyleToggle(), "枠線の種類変更トグル"), FunctionCategory.Format, 1, 4),
                 new FunctionItem("TransparencyUpToggle", "透過率Upトグル", "選択した図形の透過率を10%ずつ上げます", "transparency_up.png",
-                    () => SafeExecuteFunction(() => powerToolService.TransparencyUpToggle(), "透過率Upトグル"), FunctionCategory.Format, 1, 5),
+                    () => SafeExecuteFunction(() => shapeSelectionService.TransparencyUpToggle(), "透過率Upトグル"), FunctionCategory.Format, 1, 5),
                 new FunctionItem("TransparencyDownToggle", "透過率Downトグル", "選択した図形の透過率を10%ずつ下げます", "transparency_down.png",
-                    () => SafeExecuteFunction(() => powerToolService.TransparencyDownToggle(), "透過率Downトグル"), FunctionCategory.Format, 1, 6),
+                    () => SafeExecuteFunction(() => shapeSelectionService.TransparencyDownToggle(), "透過率Downトグル"), FunctionCategory.Format, 1, 6),
 
                 // 2行目
                 new FunctionItem("MatchHeight", "縦幅を揃える", "選択した図形の高さを最後に選択した図形に合わせます", "match_height.png",
@@ -732,7 +745,7 @@ namespace PowerPointEfficiencyAddin.UI
                 new FunctionItem("UnifyFont", "テキスト一括置換", "全ページのすべてのテキストを指定フォントに統一します", "unify_font.png",
                     () => SafeExecuteFunction(() => powerToolService.UnifyFont(), "テキスト一括置換"), FunctionCategory.PowerTool, 1, 0),
                 new FunctionItem("CompressImages", "画像圧縮", "選択した画像のファイルサイズを高品質圧縮で削減します", "compress_images.png",
-                    () => SafeExecuteFunction(() => powerToolService.CompressImages(), "画像圧縮"), FunctionCategory.PowerTool, 1, 1)
+                    () => SafeExecuteFunction(() => imageCompressionService.CompressImages(), "画像圧縮"), FunctionCategory.PowerTool, 1, 1)
             };
 
             allFunctions.AddRange(functions);
