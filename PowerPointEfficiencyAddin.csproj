@@ -237,6 +237,7 @@
     <Compile Include="Models\Licensing\FeatureAccessLevel.cs" />
     <Compile Include="Models\Licensing\FeatureDefinition.cs" />
     <Compile Include="Models\UpdateInfo.cs" />
+    <Compile Include="Services\Core\BuiltIn\BuiltInShapeService.cs" />
     <Compile Include="Services\Core\Image\ImageCompressionService.cs" />
     <Compile Include="Services\Core\Matrix\MatrixOperationService.cs" />
     <Compile Include="Services\Core\PowerTool\PowerToolServiceHelper.cs" />
