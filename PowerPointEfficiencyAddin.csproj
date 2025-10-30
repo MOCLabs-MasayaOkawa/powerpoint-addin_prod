@@ -239,7 +239,11 @@
     <Compile Include="Models\UpdateInfo.cs" />
     <Compile Include="Services\Core\BuiltIn\BuiltInShapeService.cs" />
     <Compile Include="Services\Core\Image\ImageCompressionService.cs" />
+    <Compile Include="Services\Core\Matrix\MatrixAlignmentService.cs" />
+    <Compile Include="Services\Core\Matrix\MatrixExcelService.cs" />
     <Compile Include="Services\Core\Matrix\MatrixOperationService.cs" />
+    <Compile Include="Services\Core\Matrix\MatrixOptimizationService.cs" />
+    <Compile Include="Services\Core\Matrix\MatrixStructureService.cs" />
     <Compile Include="Services\Core\PowerTool\PowerToolServiceHelper.cs" />
     <Compile Include="Services\Core\Selection\ShapeSelectionService.cs" />
     <Compile Include="Services\Core\Table\TableConversionService.cs" />
@@ -367,10 +371,7 @@
     </Compile>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Services\Core\Command\" />
-    <Folder Include="Services\Core\Line\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
