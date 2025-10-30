@@ -44,7 +44,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
             logger.Info("ExcelToPptx operation started (paste to existing matrix)");
 
             var selectedShapes = helper.GetSelectedShapeInfos();
-            if (!helper.ValidateSelection(selectedShapes, 1, 0, "Excel雋ｼ繧贋ｻ倥￠")) return;
+            if (!helper.ValidateSelection(selectedShapes, 1, 0, "Excel貼り付け")) return;
 
             ComHelper.ExecuteWithComCleanup(() =>
             {
@@ -55,8 +55,8 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     {
                         ErrorHandler.ExecuteSafely(() =>
                         {
-                            throw new InvalidOperationException("Excel縺ｮ繝・・繧ｿ繧偵さ繝斐・縺励※縺九ｉ螳溯｡後＠縺ｦ縺上□縺輔＞縲・);
-                        }, "Excel雋ｼ繧贋ｻ倥￠");
+                            throw new InvalidOperationException("Excelのデータをコピーしてから実行してください。");
+                        }, "Excel貼り付け");
                         return;
                     }
 
@@ -105,9 +105,9 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                         ErrorHandler.ExecuteSafely(() =>
                         {
                             throw new InvalidOperationException(
-                                "Excel 繝・・繧ｿ繧定ｲｼ繧贋ｻ倥￠縺ｧ縺阪ｋ蟇ｾ雎｡縺瑚ｦ九▽縺九ｊ縺ｾ縺帙ｓ縲・n" +
-                                "陦ｨ縺ｾ縺溘・繧ｰ繝ｪ繝・ラ驟咲ｽｮ縺輔ｌ縺溘ユ繧ｭ繧ｹ繝医・繝・け繧ｹ繧帝∈謚槭＠縺ｦ縺上□縺輔＞縲・);
-                        }, "Excel雋ｼ繧贋ｻ倥￠");
+                                "Excel データを貼り付けできる対象が見つかりません。\n" +
+                                "表またはグリッド配置されたテキストボックスを選択してください。");
+                        }, "Excel貼り付け");
                         return;
                     }
 
@@ -118,8 +118,8 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     logger.Error(ex, "Failed to paste Excel data");
                     ErrorHandler.ExecuteSafely(() =>
                     {
-                        throw new InvalidOperationException("Excel繝・・繧ｿ縺ｮ雋ｼ繧贋ｻ倥￠縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲・);
-                    }, "Excel雋ｼ繧贋ｻ倥￠");
+                        throw new InvalidOperationException("Excelデータの貼り付けに失敗しました。");
+                    }, "Excel貼り付け");
                 }
             }, selectedShapes.Select(s => s.Shape).ToArray());
 
@@ -136,9 +136,9 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     ErrorHandler.ExecuteSafely(() =>
                     {
                         throw new InvalidOperationException(
-                            $"陦ｨ縺ｮ繧ｵ繧､繧ｺ・・table.Rows.Count}陦古養table.Columns.Count}蛻暦ｼ峨′\n" +
-                            $"Excel繝・・繧ｿ・・excelRows}陦古養excelCols}蛻暦ｼ峨ｈ繧雁ｰ上＆縺・〒縺吶・);
-                    }, "Excel雋ｼ繧贋ｻ倥￠");
+                            $"表のサイズ（{table.Rows.Count}行×{table.Columns.Count}列）が\n" +
+                            $"Excelデータ（{excelRows}行×{excelCols}列）より小さいです。");
+                    }, "Excel貼り付け");
                     return false;
                 }
 
@@ -190,9 +190,9 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     ErrorHandler.ExecuteSafely(() =>
                     {
                         throw new InvalidOperationException(
-                            $"繧ｪ繝悶ず繧ｧ繧ｯ繝医・繝医Μ繧ｯ繧ｹ・・gridInfo.Rows}陦古養gridInfo.Columns}蛻暦ｼ峨′\n" +
-                            $"Excel繝・・繧ｿ・・excelRows}陦古養excelCols}蛻暦ｼ峨ｈ繧雁ｰ上＆縺・〒縺吶・);
-                    }, "Excel雋ｼ繧贋ｻ倥￠");
+                            $"オブジェクトマトリクス（{gridInfo.Rows}行×{gridInfo.Columns}列）が\n" +
+                            $"Excelデータ（{excelRows}行×{excelCols}列）より小さいです。");
+                    }, "Excel貼り付け");
                     return false;
                 }
 
