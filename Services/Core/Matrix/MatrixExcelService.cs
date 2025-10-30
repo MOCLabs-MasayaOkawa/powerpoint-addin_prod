@@ -22,7 +22,7 @@ using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 namespace PowerPointEfficiencyAddin.Services.Core.Matrix
 {
     /// <summary>
-    /// マトリクスExcel連携機能を提供するサービス
+    /// �}�g���N�XExcel�A�g�@�\��񋟂���T�[�r�X
     /// </summary>
     public class MatrixExcelService
     {
@@ -55,7 +55,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     {
                         ErrorHandler.ExecuteSafely(() =>
                         {
-                            throw new InvalidOperationException("Excelのデータをコピーしてから実行してください。");
+                            throw new InvalidOperationException("ExcelのチE�Eタをコピ�Eしてから実行してください、E);
                         }, "Excel貼り付け");
                         return;
                     }
@@ -105,8 +105,8 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                         ErrorHandler.ExecuteSafely(() =>
                         {
                             throw new InvalidOperationException(
-                                "Excel データを貼り付けできる対象が見つかりません。\n" +
-                                "表またはグリッド配置されたテキストボックスを選択してください。");
+                                "Excel チE�Eタを貼り付けできる対象が見つかりません、En" +
+                                "表また�EグリチE��配置されたテキスト�EチE��スを選択してください、E);
                         }, "Excel貼り付け");
                         return;
                     }
@@ -118,7 +118,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     logger.Error(ex, "Failed to paste Excel data");
                     ErrorHandler.ExecuteSafely(() =>
                     {
-                        throw new InvalidOperationException("Excelデータの貼り付けに失敗しました。");
+                        throw new InvalidOperationException("ExcelチE�Eタの貼り付けに失敗しました、E);
                     }, "Excel貼り付け");
                 }
             }, selectedShapes.Select(s => s.Shape).ToArray());
@@ -136,8 +136,8 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     ErrorHandler.ExecuteSafely(() =>
                     {
                         throw new InvalidOperationException(
-                            $"表のサイズ（{table.Rows.Count}行×{table.Columns.Count}列）が\n" +
-                            $"Excelデータ（{excelRows}行×{excelCols}列）より小さいです。");
+                            $"表のサイズ�E�Etable.Rows.Count}行×{table.Columns.Count}列）が\n" +
+                            $"ExcelチE�Eタ�E�EexcelRows}行×{excelCols}列）より小さぁE��す、E);
                     }, "Excel貼り付け");
                     return false;
                 }
@@ -190,8 +190,8 @@ namespace PowerPointEfficiencyAddin.Services.Core.Matrix
                     ErrorHandler.ExecuteSafely(() =>
                     {
                         throw new InvalidOperationException(
-                            $"オブジェクトマトリクス（{gridInfo.Rows}行×{gridInfo.Columns}列）が\n" +
-                            $"Excelデータ（{excelRows}行×{excelCols}列）より小さいです。");
+                            $"オブジェクト�Eトリクス�E�EgridInfo.Rows}行×{gridInfo.Columns}列）が\n" +
+                            $"ExcelチE�Eタ�E�EexcelRows}行×{excelCols}列）より小さぁE��す、E);
                     }, "Excel貼り付け");
                     return false;
                 }
