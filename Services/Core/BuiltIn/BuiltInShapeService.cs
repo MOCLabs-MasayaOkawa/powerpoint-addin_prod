@@ -1,6 +1,7 @@
 using Microsoft.Office.Core;
 using NLog;
 using PowerPointEfficiencyAddin.Models;
+using PowerPointEfficiencyAddin.Services.Core.PowerTool;
 using PowerPointEfficiencyAddin.Services.Infrastructure.MultiInstance;
 using PowerPointEfficiencyAddin.Services.Infrastructure.Settings;
 using PowerPointEfficiencyAddin.UI;

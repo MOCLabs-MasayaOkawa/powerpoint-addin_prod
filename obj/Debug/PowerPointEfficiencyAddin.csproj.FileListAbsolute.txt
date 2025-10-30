@@ -1,7 +1,3 @@
-C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.csproj.AssemblyReference.cache
-C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.Properties.Resources.resources
-C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.csproj.GenerateResource.cache
-C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.csproj.CoreCompileInputs.cache
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\NLog.config
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\Magick.Native-Q16-arm64.dll
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\Magick.Native-Q16-x64.dll
@@ -20,7 +16,10 @@ C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiency
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\Magick.NET.Core.xml
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\Newtonsoft.Json.xml
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\bin\Debug\NLog.xml
+C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.csproj.AssemblyReference.cache
+C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.Properties.Resources.resources
+C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.csproj.GenerateResource.cache
+C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.csproj.CoreCompileInputs.cache
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPoi.92ACD42F.Up2Date
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.dll
 C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.pdb
-C:\Users\okawamasaya\source\repos\PowerPointEfficiencyAddin\PowerPointEfficiencyAddin\obj\Debug\PowerPointEfficiencyAddin.dll.config

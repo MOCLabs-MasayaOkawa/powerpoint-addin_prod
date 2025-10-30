@@ -8,6 +8,9 @@ using PowerPointEfficiencyAddin.Services.Core.PowerTool;
 using PowerPointEfficiencyAddin.Services.Core.Selection;
 using PowerPointEfficiencyAddin.Services.Core.Shape;
 using PowerPointEfficiencyAddin.Services.Core.Text;
+using PowerPointEfficiencyAddin.Services.Core.BuiltIn;
+using PowerPointEfficiencyAddin.Services.Core.Table;
+using PowerPointEfficiencyAddin.Services.Core.Matrix;
 using PowerPointEfficiencyAddin.Services.Infrastructure.Licensing;
 using PowerPointEfficiencyAddin.Services.Infrastructure.MultiInstance;
 using PowerPointEfficiencyAddin.Services.UI.Dialogs;
@@ -46,6 +49,9 @@ namespace PowerPointEfficiencyAddin.UI
         private TextFormatService textFormatService;
         private ImageCompressionService imageCompressionService;
         private ShapeSelectionService shapeSelectionService;
+        private TableConversionService tableConversionService;
+        private MatrixOperationService matrixOperationService;
+        private BuiltInShapeService builtInShapeService;
 
         // 機能定義
         private List<FunctionItem> allFunctions;
@@ -373,6 +379,15 @@ namespace PowerPointEfficiencyAddin.UI
                 shapeSelectionService = new ShapeSelectionService(applicationProvider);
                 logger.Debug("ShapeSelectionService created");
 
+                tableConversionService = new TableConversionService(applicationProvider, new PowerToolServiceHelper(applicationProvider));
+                logger.Debug("TableConversionService created");
+
+                matrixOperationService = new MatrixOperationService(applicationProvider);
+                logger.Debug("MatrixOperationService created");
+
+                builtInShapeService = new BuiltInShapeService(applicationProvider, new PowerToolServiceHelper(applicationProvider), powerToolService);
+                logger.Debug("BuiltInShapeService created");
+
                 logger.Info("All services initialized successfully");
             }
             catch (Exception ex)
@@ -514,9 +529,9 @@ namespace PowerPointEfficiencyAddin.UI
                 new FunctionItem("ShapeLeftBrace", "中括弧", "中括弧を挿入します", "brace.png",
                     () => SafeExecuteFunction(() => ExecutePowerPointCommand("ShapeLeftBrace"), "中括弧"), FunctionCategory.Shape, 2, 3, true),
                 new FunctionItem("ShapePentagon", "五角形", "五角形を作成します", "shape_pentagon.png",
-                    () => SafeExecuteFunction(() => powerToolService.ExecutePowerPointCommand("ShapePentagon"), "五角形作成"), FunctionCategory.Shape, 2, 4),
+                    () => SafeExecuteFunction(() => builtInShapeService.ExecutePowerPointCommand("ShapePentagon"), "五角形作成"), FunctionCategory.Shape, 2, 4),
                 new FunctionItem("ShapeChevron", "シェブロン", "シェブロン（V字型）を作成します", "shape_chevron.png",
-                    () => SafeExecuteFunction(() => powerToolService.ExecutePowerPointCommand("ShapeChevron"), "シェブロン作成"), FunctionCategory.Shape, 2, 5),
+                    () => SafeExecuteFunction(() => builtInShapeService.ExecutePowerPointCommand("ShapeChevron"), "シェブロン作成"), FunctionCategory.Shape, 2, 5),
                 new FunctionItem("ShapeStyleSettings", "図形スタイル設定", "新規作成図形の塗りつぶし色・枠線色・フォント・フォント色を設定します", "shape_style_settings.png",
                     () => SafeExecuteFunction(() => powerToolService.ShowShapeStyleDialog(), "図形スタイル設定"), FunctionCategory.Shape, 2, 6)
             };
@@ -676,37 +691,37 @@ namespace PowerPointEfficiencyAddin.UI
             {
                 // 1行目
                 new FunctionItem("ConvertTableToTextBoxes", "表→オブジェクト", "選択した表をセル毎のテキストボックスに変換します", "table_to_textbox.png",
-                    () => SafeExecuteFunction(() => powerToolService.ConvertTableToTextBoxes(), "表→オブジェクト"), FunctionCategory.TableOperation, 1, 0),
+                    () => SafeExecuteFunction(() => tableConversionService.ConvertTableToTextBoxes(), "表→オブジェクト"), FunctionCategory.TableOperation, 1, 0),
                 new FunctionItem("ConvertTextBoxesToTable", "オブジェクト→表", "グリッド配置されたテキストボックスを表に変換します", "textbox_to_table.png",
-                    () => SafeExecuteFunction(() => powerToolService.ConvertTextBoxesToTable(), "オブジェクト→表"), FunctionCategory.TableOperation, 1, 1),
+                    () => SafeExecuteFunction(() => tableConversionService.ConvertTextBoxesToTable(), "オブジェクト→表"), FunctionCategory.TableOperation, 1, 1),
                 new FunctionItem("OptimizeMatrixRowHeights", "行高さ最適化", "選択したマトリクスの行高さをテキスト量に応じて最適化します", "optimize_row_heights.png",
-                    () => SafeExecuteFunction(() => powerToolService.OptimizeMatrixRowHeights(), "行高さ最適化"), FunctionCategory.TableOperation, 1, 2),
+                    () => SafeExecuteFunction(() => matrixOperationService.OptimizeMatrixRowHeights(), "行高さ最適化"), FunctionCategory.TableOperation, 1, 2),
                 new FunctionItem("OptimizeTableComplete", "表最適化", "選択した表の列幅と行高を同時最適化し、最もコンパクトな表を作成します", "optimize_table_complete.png",
-                    () => SafeExecuteFunction(() => powerToolService.OptimizeTableComplete(), "表最適化"), FunctionCategory.TableOperation, 1, 3),
+                    () => SafeExecuteFunction(() => matrixOperationService.OptimizeTableComplete(), "表最適化"), FunctionCategory.TableOperation, 1, 3),
                 new FunctionItem("EqualizeRowHeights", "行高統一", "選択した表またはオブジェクトマトリクスに行高を統一の高さにします", "equalize_row_heights.png",
-                    () => SafeExecuteFunction(() => powerToolService.EqualizeRowHeights(), "行高統一"), FunctionCategory.TableOperation, 1, 4),
+                    () => SafeExecuteFunction(() => matrixOperationService.EqualizeRowHeights(), "行高統一"), FunctionCategory.TableOperation, 1, 4),
                 new FunctionItem("EqualizeColumnWidths", "列幅統一", "選択した表またはオブジェクトマトリクスに列幅を等幅にします", "equalize_column_widths.png",
-                    () => SafeExecuteFunction(() => powerToolService.EqualizeColumnWidths(), "列幅統一"), FunctionCategory.TableOperation, 1, 5),
+                    () => SafeExecuteFunction(() => matrixOperationService.EqualizeColumnWidths(), "列幅統一"), FunctionCategory.TableOperation, 1, 5),
                 new FunctionItem("ExcelToPptx", "ExcelToPPT", "クリップボードのExcelデータをPowerPointに貼り付けます", "excel_to_pptx.png",
-                    () => SafeExecuteFunction(() => powerToolService.ExcelToPptx(), "ExcelToPPT"), FunctionCategory.TableOperation, 1, 6),
+                    () => SafeExecuteFunction(() => matrixOperationService.ExcelToPptx(), "ExcelToPPT"), FunctionCategory.TableOperation, 1, 6),
 
                 // 2行目
                 new FunctionItem("AddMatrixRowSeparators", "行間区切り線", "選択したオブジェクトマトリクスの行間に区切り線を追加します", "add_row_separators.png",
-                    () => SafeExecuteFunction(() => powerToolService.AddMatrixRowSeparators(), "行間区切り線"), FunctionCategory.TableOperation, 2, 0),
+                    () => SafeExecuteFunction(() => matrixOperationService.AddMatrixRowSeparators(), "行間区切り線"), FunctionCategory.TableOperation, 2, 0),
                 new FunctionItem("AlignShapesToCells", "図形セル整列", "マトリクス上の図形をセル中央に整列します", "align_shapes_to_cells.png",
-                    () => SafeExecuteFunction(() => powerToolService.AlignShapesToCells(), "図形セル整列"), FunctionCategory.TableOperation, 2, 1),
+                    () => SafeExecuteFunction(() => matrixOperationService.AlignShapesToCells(), "図形セル整列"), FunctionCategory.TableOperation, 2, 1),
                 new FunctionItem("AddHeaderRowToMatrix", "見出し行付与", "表またはグリッドレイアウトに見出し行を付与します", "add_header_row.png",
-                    () => SafeExecuteFunction(() => powerToolService.AddHeaderRowToMatrix(), "見出し行付与"), FunctionCategory.TableOperation, 2, 2),
+                    () => SafeExecuteFunction(() => matrixOperationService.AddHeaderRowToMatrix(), "見出し行付与"), FunctionCategory.TableOperation, 2, 2),
                 new FunctionItem("SetCellMargins", "セルマージン設定", "選択した表のセルまたはテキストボックスのマージンを設定します", "cell_margin.png",
-                    () => SafeExecuteFunction(() => powerToolService.SetCellMargins(), "セルマージン設定"), FunctionCategory.TableOperation, 2, 3),
+                    () => SafeExecuteFunction(() => matrixOperationService.SetCellMargins(), "セルマージン設定"), FunctionCategory.TableOperation, 2, 3),
                 new FunctionItem("AddMatrixRow", "行追加", "選択した表またはオブジェクトマトリクスに行を追加します", "add_matrix_row.png",
-                    () => SafeExecuteFunction(() => powerToolService.AddMatrixRow(), "行追加"), FunctionCategory.TableOperation, 2, 4),
+                    () => SafeExecuteFunction(() => matrixOperationService.AddMatrixRow(), "行追加"), FunctionCategory.TableOperation, 2, 4),
                 new FunctionItem("AddMatrixColumn", "列追加", "選択した表またはオブジェクトマトリクスに列を追加します", "add_matrix_column.png",
-                    () => SafeExecuteFunction(() => powerToolService.AddMatrixColumn(), "列追加"), FunctionCategory.TableOperation, 2, 5),
+                    () => SafeExecuteFunction(() => matrixOperationService.AddMatrixColumn(), "列追加"), FunctionCategory.TableOperation, 2, 5),
 
                 // 3行目 - Matrix Tuner を追加
                 new FunctionItem("MatrixTuner", "Matrix Tuner", "マトリクス配置の高度な調整（サイズ・間隔・ロック）", "matrix_tuner.png",
-                    () => SafeExecuteFunction(() => powerToolService.MatrixTuner(), "Matrix Tuner"), FunctionCategory.TableOperation, 3, 0)
+                    () => SafeExecuteFunction(() => matrixOperationService.MatrixTuner(), "Matrix Tuner"), FunctionCategory.TableOperation, 3, 0)
 
             };
 
@@ -1418,8 +1433,8 @@ namespace PowerPointEfficiencyAddin.UI
         {
             try
             {
-                powerToolService.ExecutePowerPointCommand(commandName);
-                logger.Debug($"Executed PowerPoint command via PowerToolService: {commandName}");
+                builtInShapeService.ExecutePowerPointCommand(commandName);
+                logger.Debug($"Executed PowerPoint command via BuiltInShapeService: {commandName}");
             }
             catch (Exception ex)
             {

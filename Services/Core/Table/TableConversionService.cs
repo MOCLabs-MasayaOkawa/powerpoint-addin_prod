@@ -43,7 +43,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
             if (!Globals.ThisAddIn.CheckFeatureAccess("ConvertTableToTextBoxes")) return;
 
             logger.Info("ConvertTableToTextBoxes operation started");
-            var app = applicationProvider.GetApplication();
+            var app = Globals.ThisAddIn.Application;
             if (app == null)
             {
                 logger.Error("Failed to get PowerPoint Application");
@@ -60,12 +60,12 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
                     return;
                 }
 
+                int shapeIndex = 0;
                 foreach (PowerPoint.Shape shape in selection.ShapeRange)
                 {
                     if (shape.HasTable == MsoTriState.msoTrue)
                     {
-                        var slide = shape.Parent as PowerPoint.Slide;
-                        tableShapes.Add(new ShapeInfo { Slide = slide, Shape = shape });
+                        tableShapes.Add(new ShapeInfo(shape, shapeIndex++));
                     }
                 }
 
@@ -77,7 +77,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
 
                 foreach (var tableShape in tableShapes)
                 {
-                    ConvertSingleTableToTextBoxes(tableShape.Slide, tableShape.Shape);
+                    ConvertSingleTableToTextBoxes(tableShape.Shape.Parent as PowerPoint.Slide, tableShape.Shape);
                 }
 
                 MessageBox.Show($"{tableShapes.Count}個のテーブルをテキストボックスに変換しました。", "完了", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -85,7 +85,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
             catch (Exception ex)
             {
                 logger.Error(ex, "ConvertTableToTextBoxes failed");
-                ErrorHandler.HandleError(ex);
+                ErrorHandler.ExecuteSafely(() => { throw new InvalidOperationException("変換処理に失敗しました。"); }, "テーブル変換");
             }
             finally
             {
@@ -104,7 +104,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
             if (!Globals.ThisAddIn.CheckFeatureAccess("ConvertTextBoxesToTable")) return;
 
             logger.Info("ConvertTextBoxesToTable operation started");
-            var app = applicationProvider.GetApplication();
+            var app = Globals.ThisAddIn.Application;
             if (app == null)
             {
                 logger.Error("Failed to get PowerPoint Application");
@@ -124,19 +124,12 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
                 slide = app.ActiveWindow.View.Slide as PowerPoint.Slide;
 
                 var selectedShapeInfos = new List<ShapeInfo>();
+                int shapeIndex = 0;
                 foreach (PowerPoint.Shape shape in selection.ShapeRange)
                 {
                     if (!helper.IsTableShape(shape) && shape.HasTextFrame == MsoTriState.msoTrue)
                     {
-                        selectedShapeInfos.Add(new ShapeInfo
-                        {
-                            Slide = slide,
-                            Shape = shape,
-                            Left = shape.Left,
-                            Top = shape.Top,
-                            Width = shape.Width,
-                            Height = shape.Height
-                        });
+                        selectedShapeInfos.Add(new ShapeInfo(shape, shapeIndex++));
                     }
                 }
 
@@ -175,7 +168,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
             catch (Exception ex)
             {
                 logger.Error(ex, "ConvertTextBoxesToTable failed");
-                ErrorHandler.HandleError(ex);
+                ErrorHandler.ExecuteSafely(() => { throw new InvalidOperationException("変換処理に失敗しました。"); }, "テーブル変換");
             }
             finally
             {
@@ -291,9 +284,9 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
             try
             {
                 var topLeft = gridInfo.TopLeft;
-                var bottomRight = gridInfo.BottomRight;
-                var tableWidth = bottomRight.Left + bottomRight.Width - topLeft.Left;
-                var tableHeight = bottomRight.Top + bottomRight.Height - topLeft.Top;
+                var bottomRightShape = gridInfo.ShapeGrid[gridInfo.Rows - 1][gridInfo.Columns - 1];
+                var tableWidth = bottomRightShape.Left + bottomRightShape.Width - topLeft.Left;
+                var tableHeight = bottomRightShape.Top + bottomRightShape.Height - topLeft.Top;
 
                 tableShape = slide.Shapes.AddTable(gridInfo.Rows, gridInfo.Columns, topLeft.Left, topLeft.Top, tableWidth, tableHeight);
                 table = tableShape.Table;
@@ -436,14 +429,7 @@ namespace PowerPointEfficiencyAddin.Services.Core.Table
         /// </summary>
         private List<List<ShapeInfo>> ConvertToShapeGrid(List<PowerPoint.Shape> shapes, int rows, int columns)
         {
-            var shapeInfos = shapes.Select(s => new ShapeInfo
-            {
-                Shape = s,
-                Left = s.Left,
-                Top = s.Top,
-                Width = s.Width,
-                Height = s.Height
-            }).OrderBy(s => s.Top).ThenBy(s => s.Left).ToList();
+            var shapeInfos = shapes.Select((s, index) => new ShapeInfo(s, index)).OrderBy(s => s.Top).ThenBy(s => s.Left).ToList();
 
             var grid = new List<List<ShapeInfo>>();
             for (int r = 0; r < rows; r++)
